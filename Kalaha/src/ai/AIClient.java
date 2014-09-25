@@ -6,6 +6,8 @@ import java.net.*;
 import javax.swing.*;
 import java.awt.*;
 import kalaha.*;
+import java.util.*;
+import java.util.List;
 
 /**
  * This is the main class for your Kalaha AI bot. Currently
@@ -229,72 +231,60 @@ public class AIClient implements Runnable
      * 
      * @return Random ambo number
      */
-    public int getRandom()
-    {
-        return 1 + (int)(Math.random() * 6);
-    }
    
-    int choise;
-    int choisePoints[] = new int[7];
-    public int GetIterativeMove(GameState currentBoard)
+
+    
+    
+    public class leaf
     {
-        choisePoints[0] = -1;
-        int startGoal = 4;
-        while((System.currentTimeMillis() - startT) / (double)1000 < 1) ;
-        {
-            RecursiveDepening(currentBoard,0,startGoal);
-            startGoal += 4;
+        public int score;
+        public int move;
+        List<leaf> leafNode;
+
+        public leaf() {
+            this.leafNode = new ArrayList<leaf>();
         }
         
-        //choise = getRandom();
+
+    };
+    
+    leaf leafOrigin = new leaf();// = new ArrayList<leaf>;
+
         
+
+
+    
+    public int GetIterativeMove(GameState currentBoard)
+    {
+        //if(!leafOrigin.leafNode.isEmpty())
+        leafOrigin.leafNode.clear();
         
-        return choise;
+        createTree(currentBoard,0,4,leafOrigin);
+        return 0;
     }
     
-    public int RecursiveDepening(GameState currentBoard, int depthLevel,int goalLevel)
+    
+    public void createTree(GameState currentBoard,int depth,int goalDepth,leaf node)
     {
-        int currentPlayer = currentBoard.getNextPlayer();
-        int bestMove = -100000;
-        if(depthLevel < goalLevel)
+        node.score = currentBoard.getScore(player);
+        
+        if(depth < goalDepth)
         {
-            for(int i = 1; i < 7;i++)
-            {  
-                int nrOfSeeds = currentBoard.getSeeds(i,currentPlayer);
-                if(nrOfSeeds > 0)
+            for(int i = 1;i < 7;i++)
+            {
+                if(currentBoard.moveIsPossible(i))
                 {
-                    GameState nextBoard = currentBoard;
-                    nextBoard.makeMove(i);
-                    int thisMove = RecursiveDepening(nextBoard,depthLevel++,goalLevel);
-                    if(thisMove > bestMove)
-                    {
-                        bestMove = thisMove;
-                        choise = i;
-                    }
+                    GameState tempBoard = currentBoard.clone();
+                    tempBoard.makeMove(i);
+
+                    leaf tempNode = new leaf();
+                    tempNode.move = i;
+                    node.leafNode.add(tempNode);
+
+                    createTree(tempBoard,depth + 1, goalDepth,  node.leafNode.get(node.leafNode.size()-1));
+
                 }
             }
         }
-        
-        if(currentBoard.getWinner() != -1)
-        {
-            if(currentBoard.getWinner() == player)
-            {
-                return 1000;
-            }
-            else
-            {
-                return -1000;
-            }
-        }
-            
-        if(currentPlayer == player)
-        {
-            return  currentBoard.getScore(currentPlayer);
-        }
-        else
-        {
-            return -currentBoard.getScore(currentPlayer);
-        }
     }
-    
 }
