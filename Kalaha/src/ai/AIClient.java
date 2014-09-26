@@ -239,18 +239,21 @@ public class AIClient implements Runnable
     {
         public int score;
         public int move;
+        public int delta;
         List<leaf> leafNode;
 
         public leaf() {
             this.leafNode = new ArrayList<leaf>();
+            this.delta = 0;
         }
         
 
     };
     
     leaf leafOrigin = new leaf();// = new ArrayList<leaf>;
+    int endOfTime = 4;
 
-        
+    
 
 
     
@@ -258,32 +261,124 @@ public class AIClient implements Runnable
     {
         //if(!leafOrigin.leafNode.isEmpty())
         leafOrigin.leafNode.clear();
-        
-        createTree(currentBoard,0,4,leafOrigin);
-        return 0;
+        int goalDepth = 4;
+        int choise = 0;
+        while((System.currentTimeMillis() - startT) / (double)1000 < endOfTime)
+        {
+            addText("Depth: " + goalDepth);
+
+            createTree(currentBoard,0,goalDepth,leafOrigin);
+            utility(leafOrigin, currentBoard, 0,goalDepth - 1);
+
+            if((System.currentTimeMillis() - startT) / (double)1000 < endOfTime)
+            {
+                leafOrigin.delta = -1;
+                for(int i = 0; i < leafOrigin.leafNode.size();i++)
+                {
+                    int temp = leafOrigin.leafNode.get(i).delta;
+                    if(temp > leafOrigin.delta)
+                    {
+                        leafOrigin.delta = temp;
+                        choise = leafOrigin.leafNode.get(i).move;
+                    }
+                }
+                if(leafOrigin.delta >= 100)
+                {
+                    break;
+                }
+                goalDepth = goalDepth + 2;
+            }
+            else
+            {
+                addText("Aborted out of time. ");
+            }
+        }
+        return choise;
     }
     
     
     public void createTree(GameState currentBoard,int depth,int goalDepth,leaf node)
     {
-        node.score = currentBoard.getScore(player);
         
-        if(depth < goalDepth)
+        if((System.currentTimeMillis() - startT) / (double)1000 < endOfTime)
         {
-            for(int i = 1;i < 7;i++)
+            
+            node.score = currentBoard.getScore(player);
+
+            if(depth < goalDepth)
             {
-                if(currentBoard.moveIsPossible(i))
+                for(int i = 1;i < 7;i++)
                 {
-                    GameState tempBoard = currentBoard.clone();
-                    tempBoard.makeMove(i);
+                    if(currentBoard.moveIsPossible(i))
+                    {
+                        GameState tempBoard = currentBoard.clone();
+                        tempBoard.makeMove(i);
 
-                    leaf tempNode = new leaf();
-                    tempNode.move = i;
-                    node.leafNode.add(tempNode);
+                        leaf tempNode = new leaf();
+                        tempNode.move = i;
+                        node.leafNode.add(tempNode);
 
-                    createTree(tempBoard,depth + 1, goalDepth,  node.leafNode.get(node.leafNode.size()-1));
+                        createTree(tempBoard,depth + 1, goalDepth,  node.leafNode.get(node.leafNode.size()-1));
 
+                    }
                 }
+            }
+        }
+    }
+    
+    
+    public void utility(leaf _leafOrigin, GameState _currentBoard,int _depth, int _goalDepth)
+    {
+        if((System.currentTimeMillis() - startT) / (double)1000 < endOfTime)
+        {
+            
+
+            if(_currentBoard.gameEnded() == false)
+            {
+                if(_depth < _goalDepth)
+                {
+                    for(int i = 0; i < _leafOrigin.leafNode.size();i++)
+                    {
+                        GameState nextBoard = _currentBoard.clone();
+
+                        nextBoard.makeMove(_leafOrigin.leafNode.get(i).move);
+
+                        utility(_leafOrigin.leafNode.get(i),nextBoard,_depth + 1,_goalDepth);
+                    }
+                }
+                _leafOrigin.delta = -1;
+                if(_currentBoard.getNextPlayer() == player) // max
+                {
+                    _leafOrigin.delta = 0;
+                    for(int i = 0; i < _leafOrigin.leafNode.size();i++)
+                    {
+                        int temp = _leafOrigin.leafNode.get(i).score - _leafOrigin.score;
+                        if(temp > _leafOrigin.delta)
+                        {
+                            _leafOrigin.delta = temp + _leafOrigin.leafNode.get(i).delta;;
+                        }
+                    }
+                }
+                else                    // min
+                {
+                    _leafOrigin.delta = 100;
+                    for(int i = 0; i < _leafOrigin.leafNode.size();i++)
+                    {
+                        int temp = _leafOrigin.leafNode.get(i).score - _leafOrigin.score;
+                        if(temp < _leafOrigin.delta)
+                        {
+                            _leafOrigin.delta = temp + _leafOrigin.leafNode.get(i).delta;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if(_currentBoard.getWinner() == player)
+                    _leafOrigin.delta = 100;
+                else
+                    _leafOrigin.delta = 0;
+
             }
         }
     }
