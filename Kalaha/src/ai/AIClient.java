@@ -239,12 +239,10 @@ public class AIClient implements Runnable
     {
         public int score;
         public int move;
-        public int delta;
         List<leaf> leafNode;
 
         public leaf() {
             this.leafNode = new ArrayList<leaf>();
-            this.delta = 0;
         }
         
 
@@ -252,7 +250,7 @@ public class AIClient implements Runnable
     
     leaf leafOrigin = new leaf();// = new ArrayList<leaf>;
 
-    
+        
 
 
     
@@ -260,24 +258,9 @@ public class AIClient implements Runnable
     {
         //if(!leafOrigin.leafNode.isEmpty())
         leafOrigin.leafNode.clear();
-        int goalDepth = 8;
-        int choise = 0;
         
-        createTree(currentBoard,0,goalDepth,leafOrigin);
-        utility(leafOrigin, currentBoard, 0,goalDepth - 1);
-        
-        leafOrigin.delta = -1;
-        for(int i = 0; i < leafOrigin.leafNode.size();i++)
-        {
-            int temp = leafOrigin.leafNode.get(i).delta;
-            if(temp > leafOrigin.delta)
-            {
-                leafOrigin.delta = temp;
-                choise = leafOrigin.leafNode.get(i).move;
-            }
-        }
-        
-        return choise;
+        createTree(currentBoard,0,4,leafOrigin);
+        return 0;
     }
     
     
@@ -300,48 +283,6 @@ public class AIClient implements Runnable
 
                     createTree(tempBoard,depth + 1, goalDepth,  node.leafNode.get(node.leafNode.size()-1));
 
-                }
-            }
-        }
-    }
-    
-    
-    public void utility(leaf _leafOrigin, GameState _currentBoard,int _depth, int _goalDepth)
-    {
-
-        if(_depth < _goalDepth)
-        {
-            for(int i = 0; i < _leafOrigin.leafNode.size();i++)
-            {
-                GameState nextBoard = _currentBoard.clone();
-                
-                nextBoard.makeMove(_leafOrigin.leafNode.get(i).move);
-                
-                utility(_leafOrigin.leafNode.get(i),nextBoard,_depth + 1,_goalDepth);
-            }
-        }
-        _leafOrigin.delta = -1;
-        if(_currentBoard.getNextPlayer() == player) // max
-        {
-            _leafOrigin.delta = 0;
-            for(int i = 0; i < _leafOrigin.leafNode.size();i++)
-            {
-                int temp = _leafOrigin.leafNode.get(i).score - _leafOrigin.score;
-                if(temp > _leafOrigin.delta)
-                {
-                    _leafOrigin.delta = temp + _leafOrigin.leafNode.get(i).delta;;
-                }
-            }
-        }
-        else                    // min
-        {
-            _leafOrigin.delta = 100;
-            for(int i = 0; i < _leafOrigin.leafNode.size();i++)
-            {
-                int temp = _leafOrigin.leafNode.get(i).score - _leafOrigin.score;
-                if(temp < _leafOrigin.delta)
-                {
-                    _leafOrigin.delta = temp + _leafOrigin.leafNode.get(i).delta;
                 }
             }
         }
