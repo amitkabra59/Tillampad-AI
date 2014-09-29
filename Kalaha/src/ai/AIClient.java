@@ -265,10 +265,10 @@ public class AIClient implements Runnable
         int choise = 0;
         while((System.currentTimeMillis() - startT) / (double)1000 < endOfTime)
         {
-            addText("Depth: " + goalDepth);
+            //addText("Depth: " + goalDepth);
 
             createTree(currentBoard,0,goalDepth,leafOrigin);
-            utility(leafOrigin, currentBoard, 0,goalDepth - 1);
+            utilityAlphaMinMax(leafOrigin, currentBoard, 0,goalDepth - 1,-1);
 
             if((System.currentTimeMillis() - startT) / (double)1000 < endOfTime)
             {
@@ -290,7 +290,7 @@ public class AIClient implements Runnable
             }
             else
             {
-                addText("Aborted out of time. ");
+                addText("Aborted at depth " + goalDepth);
             }
         }
         return choise;
@@ -326,8 +326,114 @@ public class AIClient implements Runnable
         }
     }
     
+    public int utilityAlphaMinMax(leaf _leafOrigin, GameState _currentBoard,int _depth, int _goalDepth, int _compValue)
+    {
+        int currentPlayer = _currentBoard.getNextPlayer();
+        int compValue = -1;
+                
+        if((System.currentTimeMillis() - startT) / (double)1000 < endOfTime)
+        {
+            
+
+            if(_currentBoard.gameEnded() == false)
+            {
+                if(_depth < _goalDepth)
+                {
+                    for(int i = 0; i < _leafOrigin.leafNode.size();i++)
+                    {
+                        GameState nextBoard = _currentBoard.clone();
+
+                        nextBoard.makeMove(_leafOrigin.leafNode.get(i).move);
+
+                        
+                        int temp  = utilityAlphaMinMax(_leafOrigin.leafNode.get(i),nextBoard,_depth + 1,_goalDepth,_compValue);
+                        
+                        //_compValue = temp;
+                        
+                        if(currentPlayer == player)
+                        {
+                            if(temp > _compValue)
+                            {
+                                _compValue = temp;
+                            }
+                        }
+                        else
+                        {
+                            if(_compValue == -1)
+                            {
+                                _compValue = temp;
+                            }
+                            else if(temp < _compValue)
+                            {
+                                _compValue = temp;
+                            }
+                        }
+                    }
+                }
+                
+                if(currentPlayer == player) // max
+                {
+                    _leafOrigin.delta = 0;
+                    for(int i = 0; i < _leafOrigin.leafNode.size();i++)
+                    {
+                        int temp = _leafOrigin.leafNode.get(i).score - _leafOrigin.score;
+                        if(temp > _leafOrigin.delta)
+                        {
+                            _leafOrigin.delta = temp + _leafOrigin.leafNode.get(i).delta;
+                        }
+                        
+                        if(_compValue == -1)
+                        {
+                            compValue = temp;
+                        }
+                        else
+                        {
+                            if(temp > _compValue)
+                            {
+                                return temp;
+                            }
+                        }
+                    }
+                }
+                else                    // min
+                {
+                    _leafOrigin.delta = 100;
+                    for(int i = 0; i < _leafOrigin.leafNode.size();i++)
+                    {
+                        int temp = _leafOrigin.leafNode.get(i).score - _leafOrigin.score;
+                        if(temp < _leafOrigin.delta)
+                        {
+                            _leafOrigin.delta = temp + _leafOrigin.leafNode.get(i).delta;
+                        }
+                        
+                         if(_compValue == -1)
+                        {
+                            compValue = temp;
+                        }
+                        else
+                        {
+                            if(temp < _compValue)
+                            {
+                                return temp;
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if(_currentBoard.getWinner() == player)
+                    _leafOrigin.delta = 100;
+                else
+                    _leafOrigin.delta = 0;
+
+            }
+        }
+        
+        return compValue;
+    }
     
-    public void utility(leaf _leafOrigin, GameState _currentBoard,int _depth, int _goalDepth)
+    public void utilityMinMax(leaf _leafOrigin, GameState _currentBoard,int _depth, int _goalDepth)
     {
         if((System.currentTimeMillis() - startT) / (double)1000 < endOfTime)
         {
@@ -343,7 +449,7 @@ public class AIClient implements Runnable
 
                         nextBoard.makeMove(_leafOrigin.leafNode.get(i).move);
 
-                        utility(_leafOrigin.leafNode.get(i),nextBoard,_depth + 1,_goalDepth);
+                        utilityMinMax(_leafOrigin.leafNode.get(i),nextBoard,_depth + 1,_goalDepth);
                     }
                 }
                 _leafOrigin.delta = -1;
