@@ -23,7 +23,10 @@ public class Rules
         
         // Wumpus pit stench breese
         public boolean contains[] = new boolean[4];
-        public boolean safe = true;
+        // Wumpus pit
+        public boolean used[] = new boolean[2];
+        public boolean trueDanger[] = new boolean[2];
+        public boolean safe = false;
     }
     
     public Rules(World world)
@@ -62,6 +65,19 @@ public class Rules
         {
             setDangerZone(px,py,0);
         }
+        if(worldList.get(plp).contains[3]) // brese
+        {
+            setDangerZone(px,py,1);
+        }
+        if( worldList.get(plp).contains[0] == false && 
+            worldList.get(plp).contains[1] == false && 
+            worldList.get(plp).contains[2] == false && 
+            worldList.get(plp).contains[3] == false) // empty
+        {
+            setSafeZone(px,py);
+        }
+        
+        setTrueDanger();
     }
     
     private void updatePos(int i)
@@ -94,39 +110,278 @@ public class Rules
         {
             if(worldList.get(i).x == x+1 && worldList.get(i).y == y )
             {
-                if(w.isVisited(worldList.get(i).x, worldList.get(i).y) == false)
-                {
-                    worldList.get(i).safe = false;
-                    worldList.get(i).contains[danger] = true;
-                }
+                if(worldList.get(i).safe == false)
+                    if(w.isVisited(worldList.get(i).x, worldList.get(i).y) == false)
+                    {
+                        worldList.get(i).safe = false;
+                        worldList.get(i).contains[danger] = true;
+                    }
             }
             if(worldList.get(i).x == x+1 && worldList.get(i).y == y )
             {
-                if(w.isVisited(worldList.get(i).x, worldList.get(i).y) == false)
-                {
-                    worldList.get(i).safe = false;
-                    worldList.get(i).contains[danger] = true;
+                if(worldList.get(i).safe == false)
+                    if(w.isVisited(worldList.get(i).x, worldList.get(i).y) == false)
+                    {
+                        worldList.get(i).safe = false;
+                        worldList.get(i).contains[danger] = true;
 
-                }
+                    }
             }
             if(worldList.get(i).x == x+1 && worldList.get(i).y == y )
             {
-                if(w.isVisited(worldList.get(i).x, worldList.get(i).y) == false)
-                {
-                    worldList.get(i).safe = false;
-                    worldList.get(i).contains[danger] = true;
+                if(worldList.get(i).safe == false)
+                    if(w.isVisited(worldList.get(i).x, worldList.get(i).y) == false)
+                    {
+                        worldList.get(i).safe = false;
+                        worldList.get(i).contains[danger] = true;
 
-                }
+                    }
             }
             if(worldList.get(i).x == x+1 && worldList.get(i).y == y )
             {
-                if(w.isVisited(worldList.get(i).x, worldList.get(i).y) == false)
-                {
-                    worldList.get(i).safe = false;
-                    worldList.get(i).contains[danger] = true;
+                if(worldList.get(i).safe == false)
+                    if(w.isVisited(worldList.get(i).x, worldList.get(i).y) == false)
+                    {
+                        worldList.get(i).safe = false;
+                        worldList.get(i).contains[danger] = true;
 
+                    }
+            }
+        }
+    }
+    
+    private void setSafeZone(int x,int y)
+    {
+        for(int i = 0; i < worldList.size();i++)
+        {
+            if(worldList.get(i).x == x+1 && worldList.get(i).y == y )
+            {
+                worldList.get(i).safe = true;
+            }
+            if(worldList.get(i).x == x+1 && worldList.get(i).y == y )
+            {
+                worldList.get(i).safe = true;
+            }
+            if(worldList.get(i).x == x+1 && worldList.get(i).y == y )
+            {
+                worldList.get(i).safe = true;
+            }
+            if(worldList.get(i).x == x+1 && worldList.get(i).y == y )
+            {
+                worldList.get(i).safe = true;
+            }
+        }
+    }
+    
+    private void setTrueDanger()
+    {
+        for(int j = 0; j < 2;j++)
+        {
+            int x,y;
+            for(int i = 0; i < worldList.size();i++)
+            {
+                if(worldList.get(i).contains[j] == true)
+                {
+                    x = worldList.get(i).x;
+                    y = worldList.get(i).y;
+                  
+                    if(w.isVisited(x+1, y+1))
+                    {
+                        int markers = 0;
+                        for(int k = 0; i < worldList.size();k++)
+                        {
+                            if(worldList.get(k).x == x+1 && worldList.get(k).y == y)
+                            {
+                                if(worldList.get(k).contains[j+2] == true && worldList.get(k).used[j] == false)
+                                {
+                                    markers++;
+                                }
+                            }
+                            if(worldList.get(k).x == x && worldList.get(k).y == y+1)
+                            {
+                                if(worldList.get(k).contains[j+2] == true && worldList.get(k).used[j] == false)
+                                {
+                                    markers++;
+                                }
+                            }
+                        }
+                        if(markers == 2)
+                        {
+                            for(int k = 0; k < worldList.size();k++)
+                            {
+                                if(worldList.get(k).x == x+1 && worldList.get(k).y == y)
+                                {
+                                    worldList.get(k).used[j] = true;
+                                }
+                                if(worldList.get(k).x == x && worldList.get(k).y == y+1)
+                                {
+                                    worldList.get(k).used[j] = true;
+                                }
+                                if(worldList.get(k).x == x-1 && worldList.get(k).y == y)
+                                {
+                                    worldList.get(k).used[j] = true;
+                                }
+                                if(worldList.get(k).x == x && worldList.get(k).y == y-1)
+                                {
+                                    worldList.get(k).used[j] = true;
+                                }
+                            }
+                            worldList.get(i).trueDanger[j] = true; 
+                        }
+                    }
+                     if(w.isVisited(x-1, y+1))
+                    {
+                        int markers = 0;
+                        for(int k = 0; i < worldList.size();k++)
+                        {
+                            if(worldList.get(k).x == x-1 && worldList.get(k).y == y)
+                            {
+                                if(worldList.get(k).contains[j+2] == true && worldList.get(k).used[j] == false)
+                                {
+                                    markers++;
+                                }
+                            }
+                            if(worldList.get(k).x == x && worldList.get(k).y == y+1)
+                            {
+                                if(worldList.get(k).contains[j+2] == true && worldList.get(k).used[j] == false)
+                                {
+                                    markers++;
+                                }
+                            }
+                        }
+                        if(markers == 2)
+                        {
+                            for(int k = 0; k < worldList.size();k++)
+                            {
+                                if(worldList.get(k).x == x+1 && worldList.get(k).y == y)
+                                {
+                                    worldList.get(k).used[j] = true;
+                                }
+                                if(worldList.get(k).x == x && worldList.get(k).y == y+1)
+                                {
+                                    worldList.get(k).used[j] = true;
+                                }
+                                if(worldList.get(k).x == x-1 && worldList.get(k).y == y)
+                                {
+                                    worldList.get(k).used[j] = true;
+                                }
+                                if(worldList.get(k).x == x && worldList.get(k).y == y-1)
+                                {
+                                    worldList.get(k).used[j] = true;
+                                }
+                            }
+                            worldList.get(i).trueDanger[j] = true; 
+                        }
+                    }   
+                    if(w.isVisited(x-1, y-1))
+                    {
+                        int markers = 0;
+                        for(int k = 0; i < worldList.size();k++)
+                        {
+                            if(worldList.get(k).x == x-1 && worldList.get(k).y == y)
+                            {
+                                if(worldList.get(k).contains[j+2] == true && worldList.get(k).used[j] == false)
+                                {
+                                    markers++;
+                                }
+                            }
+                            if(worldList.get(k).x == x && worldList.get(k).y == y-1)
+                            {
+                                if(worldList.get(k).contains[j+2] == true && worldList.get(k).used[j] == false)
+                                {
+                                    markers++;
+                                }
+                            }
+                        }
+                        if(markers == 2)
+                        {
+                            for(int k = 0; k < worldList.size();k++)
+                            {
+                                if(worldList.get(k).x == x+1 && worldList.get(k).y == y)
+                                {
+                                    worldList.get(k).used[j] = true;
+                                }
+                                if(worldList.get(k).x == x && worldList.get(k).y == y+1)
+                                {
+                                    worldList.get(k).used[j] = true;
+                                }
+                                if(worldList.get(k).x == x-1 && worldList.get(k).y == y)
+                                {
+                                    worldList.get(k).used[j] = true;
+                                }
+                                if(worldList.get(k).x == x && worldList.get(k).y == y-1)
+                                {
+                                    worldList.get(k).used[j] = true;
+                                }
+                            }
+                            worldList.get(i).trueDanger[j] = true; 
+                        }
+                    }
+                    if(w.isVisited(x+1, y-1))
+                    {
+                        int markers = 0;
+                        for(int k = 0; i < worldList.size();k++)
+                        {
+                            if(worldList.get(k).x == x+1 && worldList.get(k).y == y)
+                            {
+                                if(worldList.get(k).contains[j+2] == true && worldList.get(k).used[j] == false)
+                                {
+                                    markers++;
+                                }
+                            }
+                            if(worldList.get(k).x == x && worldList.get(k).y == y-1)
+                            {
+                                if(worldList.get(k).contains[j+2] == true && worldList.get(k).used[j] == false)
+                                {
+                                    markers++;
+                                }
+                            }
+                        }
+                        if(markers == 2)
+                        {
+                            for(int k = 0; k < worldList.size();k++)
+                            {
+                                if(worldList.get(k).x == x+1 && worldList.get(k).y == y)
+                                {
+                                    worldList.get(k).used[j] = true;
+                                }
+                                if(worldList.get(k).x == x && worldList.get(k).y == y+1)
+                                {
+                                    worldList.get(k).used[j] = true;
+                                }
+                                if(worldList.get(k).x == x-1 && worldList.get(k).y == y)
+                                {
+                                    worldList.get(k).used[j] = true;
+                                }
+                                if(worldList.get(k).x == x && worldList.get(k).y == y-1)
+                                {
+                                    worldList.get(k).used[j] = true;
+                                }
+                            }
+                            worldList.get(i).trueDanger[j] = true; 
+                        }
+                    }
+                }
+            }   
+        }
+    }
+    
+    private void clearFalseDanger()
+    {   
+        for(int j = 0; j < 2;j++)
+        {
+            for(int i = 0; i < worldList.size();i++)
+            {
+                if(worldList.get(i).contains[j] == true && worldList.get(i).trueDanger[j] == false)
+                {
+                    
                 }
             }
         }
     }
+    
+    
+    
+    
+    
 }
