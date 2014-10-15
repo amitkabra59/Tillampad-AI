@@ -16,6 +16,8 @@ public class Rules
     private World w;
     public List<worldInfo> worldList = new ArrayList<worldInfo>();
     
+    private int goal[] = new int[2];
+    
     public class worldInfo
     {
         public int x;
@@ -32,13 +34,13 @@ public class Rules
     public Rules(World world)
     {
         w = world;
-        for(int i = 1;i < Math.sqrt(w.getSize());i++)
+        for(int i = 1;i < w.getSize()+1;i++)
         {
-            for(int j = 1;j < Math.sqrt(w.getSize());j++)
+            for(int j = 1;j < w.getSize()+1;j++)
             {
                 worldInfo temp = new worldInfo();
-                temp.x = i;
-                temp.y = j;
+                temp.x = j;
+                temp.y = i;
                 
                 worldList.add(temp);
             }
@@ -51,7 +53,8 @@ public class Rules
         int plp = 0;
         px = w.getPlayerX();
         py = w.getPlayerY();
-        
+        goal[0] = -1;
+        goal[1] = -1;
         for(int i = 0;i < worldList.size();i++)
         {
             if(worldList.get(i).x == px && worldList.get(i).y == py)
@@ -69,27 +72,41 @@ public class Rules
         {
             setDangerZone(px,py,1);
         }
-        if( worldList.get(plp).contains[0] == false && 
-            worldList.get(plp).contains[1] == false && 
-            worldList.get(plp).contains[2] == false && 
-            worldList.get(plp).contains[3] == false) // empty
+        for(int i = 0; i < worldList.size();i++)
         {
-            setSafeZone(px,py);
+            if( worldList.get(i).contains[0] == false && 
+                worldList.get(i).contains[1] == false && 
+                worldList.get(i).contains[2] == false && 
+                worldList.get(i).contains[3] == false &&
+                w.isVisited(worldList.get(i).x, worldList.get(i).y)) // empty
+            {
+                setSafeZone(worldList.get(i).x, worldList.get(i).y);
+            }
         }
         
         setTrueDanger();
+        clearFalseDanger();
+        setGoal();
+        for(int i = 0; i < worldList.size();i++)
+        {
+            if(w.hasGlitter(worldList.get(i).x, worldList.get(i).y))
+            {
+                goal[0] = worldList.get(i).x;
+                goal[1] = worldList.get(i).y;
+            }
+        }
+        pathToGoal();
     }
     
     private void updatePos(int i)
     {
+        worldList.get(i).safe = true;
         if(w.hasBreeze(worldList.get(i).x, worldList.get(i).y))
         {
-            worldList.get(i).safe = true;
             worldList.get(i).contains[3] = true;
         }
         if(w.hasStench(worldList.get(i).x, worldList.get(i).y))
         {
-            worldList.get(i).safe = true;
             worldList.get(i).contains[2] = true;
         }
         if(w.hasPit(worldList.get(i).x, worldList.get(i).y))
@@ -158,15 +175,15 @@ public class Rules
             {
                 worldList.get(i).safe = true;
             }
-            if(worldList.get(i).x == x+1 && worldList.get(i).y == y )
+            if(worldList.get(i).x == x-1 && worldList.get(i).y == y )
             {
                 worldList.get(i).safe = true;
             }
-            if(worldList.get(i).x == x+1 && worldList.get(i).y == y )
+            if(worldList.get(i).x == x && worldList.get(i).y == y+1 )
             {
                 worldList.get(i).safe = true;
             }
-            if(worldList.get(i).x == x+1 && worldList.get(i).y == y )
+            if(worldList.get(i).x == x && worldList.get(i).y == y-1 )
             {
                 worldList.get(i).safe = true;
             }
@@ -188,7 +205,7 @@ public class Rules
                     if(w.isVisited(x+1, y+1))
                     {
                         int markers = 0;
-                        for(int k = 0; i < worldList.size();k++)
+                        for(int k = 0; k < worldList.size();k++)
                         {
                             if(worldList.get(k).x == x+1 && worldList.get(k).y == y)
                             {
@@ -232,7 +249,7 @@ public class Rules
                      if(w.isVisited(x-1, y+1))
                     {
                         int markers = 0;
-                        for(int k = 0; i < worldList.size();k++)
+                        for(int k = 0; k < worldList.size();k++)
                         {
                             if(worldList.get(k).x == x-1 && worldList.get(k).y == y)
                             {
@@ -276,7 +293,7 @@ public class Rules
                     if(w.isVisited(x-1, y-1))
                     {
                         int markers = 0;
-                        for(int k = 0; i < worldList.size();k++)
+                        for(int k = 0; k < worldList.size();k++)
                         {
                             if(worldList.get(k).x == x-1 && worldList.get(k).y == y)
                             {
@@ -320,7 +337,7 @@ public class Rules
                     if(w.isVisited(x+1, y-1))
                     {
                         int markers = 0;
-                        for(int k = 0; i < worldList.size();k++)
+                        for(int k = 0; k < worldList.size();k++)
                         {
                             if(worldList.get(k).x == x+1 && worldList.get(k).y == y)
                             {
@@ -374,13 +391,519 @@ public class Rules
             {
                 if(worldList.get(i).contains[j] == true && worldList.get(i).trueDanger[j] == false)
                 {
-                    
+                    int x = worldList.get(i).x;
+                    int y = worldList.get(i).y;
+
+                    for(int k = 0; k < worldList.size();k++)
+                    {
+                        if(worldList.get(k).x == x+1 && worldList.get(k).y == y+1)
+                        {
+                            if(worldList.get(k).trueDanger[j] == true)
+                            {
+                                worldList.get(i).contains[j] = false;
+                            }
+                        }
+                        if(worldList.get(k).x == x+1 && worldList.get(k).y == y-1)
+                        {
+                            if(worldList.get(k).trueDanger[j] == true)
+                            {
+                                worldList.get(i).contains[j] = false;
+                            }
+                        }
+                        if(worldList.get(k).x == x-1 && worldList.get(k).y == y+1)
+                        {
+                            if(worldList.get(k).trueDanger[j] == true)
+                            {
+                                worldList.get(i).contains[j] = false;
+                            }
+                        }
+                        if(worldList.get(k).x == x-1 && worldList.get(k).y == y-1)
+                        {
+                            if(worldList.get(k).trueDanger[j] == true)
+                            {
+                                worldList.get(i).contains[j] = false;
+                            }
+                        }
+                        
+                    }
                 }
             }
         }
     }
     
+    private void setGoal()
+    {
+        List<worldInfo> safeList = new ArrayList<worldInfo>();
+        boolean trueWumpus = false;
+        for(int i = 0; i < worldList.size();i++)
+        {
+            if(w.isVisited(worldList.get(i).x, worldList.get(i).y) == false && worldList.get(i).safe == true )
+            {
+                safeList.add(worldList.get(i));
+            }
+        }
+        
+        if(safeList.size() > 0)
+        {
+            goal[0] = safeList.get(0).x;
+            goal[1] = safeList.get(0).y;
+        }
+        else if(w.wumpusAlive() == true)
+        {
+            for(int i = 0; i < worldList.size();i++)
+            {
+                if(worldList.get(i).trueDanger[0] == true)
+                {
+                    goal[0] = -1;
+                    goal[1] = -1;
+                    trueWumpus = true;
+                }
+            }
+        }
+        
+        if(safeList.size() == 0 && trueWumpus == false)
+        {
+            for(int i = 0; i < worldList.size();i++)
+            {
+                if(w.isVisited(worldList.get(i).x, worldList.get(i).y) == false && worldList.get(i).trueDanger[0] == false && worldList.get(i).trueDanger[1] == false )
+                {
+                    goal[0] = worldList.get(i).x;
+                    goal[1] = worldList.get(i).y;
+                    break;
+                }   
+            }
+        }
+        System.out.println("Goal = " + goal[0] + " " + goal[1]);
+    }
     
+    private void pathToGoal()
+    {
+        int px = w.getPlayerX();
+        int py = w.getPlayerY();
+        
+        int dx = goal[0] - px;
+        int dy = goal[1] - py;
+        
+        int pi = 0;
+        for(int i = 0; i < worldList.size();i++)
+        {
+            if(worldList.get(i).x == px && worldList.get(i).y == py)
+            {
+                pi = i;
+            }
+        }
+        
+        if(Math.abs(dx) + Math.abs(dy) == 1)
+        {
+            if(shouldTurn(goal[0],goal[1]))
+            {
+                doTurn(goal[0],goal[1]);
+            }
+            else
+            {
+                w.doAction(World.A_MOVE);
+            }
+        }
+        else if(goal[0] == -1 && goal[1] == -1)
+        {
+            killWumpus();
+        }
+        else
+        {
+            List<worldInfo> pathList = new ArrayList<worldInfo>();
+            pathList.add(worldList.get(pi));
+
+            
+            while(true)
+            {
+                int tx = pathList.get(pathList.size()-1).x;
+                int ty = pathList.get(pathList.size()-1).y;
+                int bestChoise[] = new int[2];
+                bestChoise[0] = 100;
+                bestChoise[1] = 100;   
+                dx = goal[0] - px;
+                dy = goal[1] - py;
+                
+                if(Math.abs(dx) + Math.abs(dy) == 1)
+                {
+                    for(int i = 0; i < worldList.size();i++)
+                    {
+                        if(worldList.get(i).x == goal[0] && worldList.get(i).y == goal[1])
+                        {
+                            pathList.add(worldList.get(i));
+                        }
+                    }
+                }
+                else
+                {
+                    for(int i = 0; i < worldList.size();i++)
+                    {
+                        if(Math.abs(worldList.get(i).x - tx) + Math.abs(worldList.get(i).y - ty) == 1)
+                        {
+                            if( worldList.get(i).safe == true)
+                            {
+                                if(Math.abs(worldList.get(i).x - goal[0]) + Math.abs(worldList.get(i).y - goal[1]) < bestChoise[0] )
+                                {
+                                    boolean beenThere = false;
+                                    for(int j = 0; j < pathList.size();j++)
+                                    {
+                                        if(pathList.get(j) == worldList.get(i))
+                                        {
+                                            beenThere = true;
+                                        } 
+                                    }
+                                    if(beenThere == false)
+                                    {
+                                        bestChoise[0] = worldList.get(i).x - goal[0] + worldList.get(i).y - goal[1];
+                                        bestChoise[1] = i;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if(bestChoise[1] == 100)
+                    {
+                        pathList.add(pathList.get(pathList.size()-2));
+                    }
+                    else
+                    {
+                        pathList.add(worldList.get(bestChoise[1]));
+                    }
+                }
+                
+                if(pathList.get(pathList.size()-1).x == goal[0] && pathList.get(pathList.size()-1).y == goal[1])
+                {
+                    break;
+                }
+            }
+            
+            for(int i = 0; i < pathList.size();i++)
+            {
+                if(shouldTurn(pathList.get(i).x,pathList.get(i).y))
+                {
+                    doTurn(pathList.get(i).x,pathList.get(i).y);
+                }
+                else
+                {
+                    w.doAction(World.A_MOVE);
+                }
+            }
+        }
+    }
+    
+    private boolean shouldTurn(int x, int y)
+    {
+        int px = w.getPlayerX();
+        int py = w.getPlayerY();
+        
+        int dx = x - px;
+        int dy = y - py;
+        
+        if(dx == 1 && w.getDirection() == World.DIR_RIGHT)
+        {
+            return false;
+        }
+        else if(dx == -1 && w.getDirection() == World.DIR_LEFT)
+        {
+            return false;
+        }
+        else if(dy == 1 && w.getDirection() == World.DIR_UP)
+        {
+            return false;
+        }
+        else if(dy == -1 && w.getDirection() == World.DIR_DOWN)
+        {
+            return false;
+        }
+        
+        return true;
+    }
+    
+    private void doTurn(int x, int y)
+    {
+        int px = w.getPlayerX();
+        int py = w.getPlayerY();
+        
+        int dx = x - px;
+        int dy = y - py;
+        
+        int pDir = w.getDirection();
+        
+        
+        
+        if(dx > 0)
+        {
+            if(pDir == 0)
+            {
+                w.doAction(World.A_TURN_RIGHT);
+                w.doAction(World.A_MOVE);
+            }
+            else if(pDir == 2)
+            {
+                w.doAction(World.A_TURN_LEFT);
+                w.doAction(World.A_MOVE);
+            }
+            else if(pDir == 3)
+            {
+                w.doAction(World.A_TURN_LEFT);
+                w.doAction(World.A_TURN_LEFT);
+                w.doAction(World.A_MOVE);
+            }
+        }
+        else if(dx < 0)
+        {
+            if(pDir == 0)
+            {
+                w.doAction(World.A_TURN_LEFT);
+                w.doAction(World.A_MOVE);
+            }
+            else if(pDir == 2)
+            {
+                w.doAction(World.A_TURN_RIGHT);
+                w.doAction(World.A_MOVE);
+            }
+            else if(pDir == 1)
+            {
+                w.doAction(World.A_TURN_LEFT);
+                w.doAction(World.A_TURN_LEFT);
+                w.doAction(World.A_MOVE);
+            }
+        }
+        else if(dy > 0)
+        {
+            if(pDir == 1)
+            {
+                w.doAction(World.A_TURN_LEFT);
+                w.doAction(World.A_MOVE);
+            }
+            else if(pDir == 2)
+            {
+                w.doAction(World.A_TURN_LEFT);
+                w.doAction(World.A_TURN_LEFT);
+                w.doAction(World.A_MOVE);
+            }
+            else if(pDir == 3)
+            {
+                w.doAction(World.A_TURN_RIGHT);
+                w.doAction(World.A_MOVE);
+            }
+        }
+        if(dy < 0)
+        {
+            if(pDir == 0)
+            {
+                w.doAction(World.A_TURN_RIGHT);
+                w.doAction(World.A_TURN_RIGHT);
+                w.doAction(World.A_MOVE);
+            }
+            else if(pDir == 1)
+            {
+                w.doAction(World.A_TURN_RIGHT);
+                w.doAction(World.A_MOVE);
+            }
+            else if(pDir == 3)
+            {
+                w.doAction(World.A_TURN_LEFT);
+                w.doAction(World.A_MOVE);
+            }
+        }
+    }
+    
+    private void killWumpus()
+    {
+        int px = w.getPlayerX();
+        int py = w.getPlayerY();
+        
+        int dx = goal[0] - px;
+        int dy = goal[1] - py;
+        
+        int pi = 0;
+        for(int i = 0; i < worldList.size();i++)
+        {
+            if(worldList.get(i).x == px && worldList.get(i).y == py)
+            {
+                pi = i;
+            }
+        }
+        
+        for(int i = 0; i < worldList.size();i++)
+            {
+                if(worldList.get(i).trueDanger[0] == true)
+                {
+                    goal[0] = worldList.get(i).x;
+                    goal[1] = worldList.get(i).y;
+                }
+            }
+        
+        
+        List<worldInfo> pathList = new ArrayList<worldInfo>();
+        pathList.add(worldList.get(pi));
+
+        while(pathList.get(pathList.size()-1).x != goal[0] && pathList.get(pathList.size()-1).y != goal[1])
+        {
+            int tx = pathList.get(pathList.size()-1).x;
+            int ty = pathList.get(pathList.size()-1).y;
+            int bestChoise[] = new int[2];
+            bestChoise[0] = 100;
+            bestChoise[1] = 100;   
+            if(Math.abs(dx) + Math.abs(dy) == 1)
+            {
+                for(int i = 0; i < worldList.size();i++)
+                {
+                    if(worldList.get(i).x == goal[0] && worldList.get(i).y == goal[1])
+                    {
+                        pathList.add(worldList.get(i));
+                    }
+                }
+            }
+            else
+            {
+                for(int i = 0; i < worldList.size();i++)
+                {
+                    if(Math.abs(worldList.get(i).x - tx) + Math.abs(worldList.get(i).y - ty) == 1)
+                    {
+                        if(Math.abs(worldList.get(i).x - goal[0]) + Math.abs(worldList.get(i).y - goal[1]) < bestChoise[0] )
+                        {
+                            boolean beenThere = false;
+                            for(int j = 0; j < pathList.size();j++)
+                            {
+                                if(pathList.get(j) == worldList.get(i))
+                                {
+                                    beenThere = true;
+                                } 
+                            }
+                            if(beenThere == false)
+                            {
+                                bestChoise[0] = worldList.get(i).x - goal[0] + worldList.get(i).y - goal[1];
+                                bestChoise[1] = i;
+                            }
+                        }
+                    }
+                }
+
+                if(bestChoise[1] == 100)
+                {
+                    pathList.add(pathList.get(pathList.size()-2));
+                }
+                else
+                {
+                    pathList.add(worldList.get(bestChoise[1]));
+                }
+            }
+        }
+
+        for(int i = 0; i < pathList.size();i++)
+        {
+            if(shouldTurn(pathList.get(i).x,pathList.get(i).y))
+            {
+                doTurn(pathList.get(i).x,pathList.get(i).y);
+            }
+            else
+            {
+                w.doAction(World.A_MOVE);
+            }
+        }
+        
+        
+        if(shouldTurn(goal[0], goal[1]))
+        {
+            int pDir = w.getDirection();
+            px = w.getPlayerX();
+            py = w.getPlayerY();
+            dx = goal[0] - px;
+            dy = goal[1] - py;
+        
+        
+            if(dx > 0)
+            {
+                if(pDir == 0)
+                {
+                    w.doAction(World.A_TURN_RIGHT);
+                }
+                else if(pDir == 2)
+                {
+                    w.doAction(World.A_TURN_LEFT);
+                }
+                else if(pDir == 3)
+                {
+                    w.doAction(World.A_TURN_LEFT);
+                    w.doAction(World.A_TURN_LEFT);
+                }
+            }
+            else if(dx < 0)
+            {
+                if(pDir == 0)
+                {
+                    w.doAction(World.A_TURN_LEFT);
+                }
+                else if(pDir == 2)
+                {
+                    w.doAction(World.A_TURN_RIGHT);
+                }
+                else if(pDir == 1)
+                {
+                    w.doAction(World.A_TURN_LEFT);
+                    w.doAction(World.A_TURN_LEFT);
+                }
+            }
+            else if(dy > 0)
+            {
+                if(pDir == 1)
+                {
+                    w.doAction(World.A_TURN_LEFT);
+                }
+                else if(pDir == 2)
+                {
+                    w.doAction(World.A_TURN_LEFT);
+                    w.doAction(World.A_TURN_LEFT);
+                }
+                else if(pDir == 3)
+                {
+                    w.doAction(World.A_TURN_RIGHT);
+                }
+            }
+            if(dy < 0)
+            {
+                if(pDir == 0)
+                {
+                    w.doAction(World.A_TURN_RIGHT);
+                    w.doAction(World.A_TURN_RIGHT);
+                }
+                else if(pDir == 1)
+                {
+                    w.doAction(World.A_TURN_RIGHT);
+                }
+                else if(pDir == 3)
+                {
+                    w.doAction(World.A_TURN_LEFT);
+                }
+            }
+            
+            w.doAction(World.A_SHOOT);
+
+            
+        }
+        else
+        {
+            w.doAction(World.A_SHOOT);
+        }
+        
+        for(int i = 0;i < worldList.size();i++)
+        {
+            if(worldList.get(i).contains[0] == true)
+            {
+                worldList.get(i).contains[0] = false;
+                worldList.get(i).trueDanger[0] = false;
+            }    
+            if(worldList.get(i).contains[2] == true)
+            {
+                worldList.get(i).contains[2] = false;
+            }
+
+        }
+        
+    }
     
     
     

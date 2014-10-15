@@ -9,7 +9,7 @@ package wumpusworld;
 public class MyAgent implements Agent
 {
     private World w;
-    
+    private Rules r;
     /**
      * Creates a new instance of your solver agent.
      * 
@@ -18,6 +18,7 @@ public class MyAgent implements Agent
     public MyAgent(World world)
     {
         w = world;
+        r = new Rules(world);
     }
     
     /**
@@ -45,52 +46,6 @@ public class MyAgent implements Agent
             return;
         }
         
-        //Test the environment
-        if (w.hasBreeze(cX, cY))
-        {
-            System.out.println("I am in a Breeze");
-        }
-        if (w.hasStench(cX, cY))
-        {
-            System.out.println("I am in a Stench");
-        }
-        if (w.hasPit(cX, cY))
-        {
-            System.out.println("I am in a Pit");
-        }
-        if (w.getDirection() == World.DIR_RIGHT)
-        {
-            System.out.println("I am facing Right");
-        }
-        if (w.getDirection() == World.DIR_LEFT)
-        {
-            System.out.println("I am facing Left");
-        }
-        if (w.getDirection() == World.DIR_UP)
-        {
-            System.out.println("I am facing Up");
-        }
-        if (w.getDirection() == World.DIR_DOWN)
-        {
-            System.out.println("I am facing Down");
-        }
-        
-        //Random move actions
-        int rnd = (int)(Math.random() * 5);
-        if (rnd == 0) 
-        {
-            w.doAction(World.A_TURN_LEFT);
-            return;
-        }
-        if (rnd == 1)
-        {
-            w.doAction(World.A_TURN_RIGHT);
-            return;
-        }
-        if (rnd >= 2)
-        {
-            w.doAction(World.A_MOVE);
-            return;
-        }
+        r.updateWorld();
     }
 }
