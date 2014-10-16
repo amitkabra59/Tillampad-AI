@@ -72,21 +72,18 @@ public class Rules
         {
             setDangerZone(px,py,1);
         }
+        setTrueDanger();
+        clearFalseDanger();
         for(int i = 0; i < worldList.size();i++)
         {
-            if( worldList.get(i).contains[0] == false && 
-                worldList.get(i).contains[1] == false && 
-                worldList.get(i).contains[2] == false && 
+            if( worldList.get(i).contains[2] == false && 
                 worldList.get(i).contains[3] == false &&
                 w.isVisited(worldList.get(i).x, worldList.get(i).y)) // empty
             {
                 setSafeZone(worldList.get(i).x, worldList.get(i).y);
             }
         }
-        
-        setTrueDanger();
-        clearFalseDanger();
-        setGoal();
+        setGoal(false);
         for(int i = 0; i < worldList.size();i++)
         {
             if(w.hasGlitter(worldList.get(i).x, worldList.get(i).y))
@@ -111,8 +108,7 @@ public class Rules
         }
         if(w.hasPit(worldList.get(i).x, worldList.get(i).y))
         {
-            worldList.get(i).safe = false;
-            worldList.get(i).contains[1] = true;
+            setPit(worldList.get(i).x, worldList.get(i).y);
         }
         if(w.hasWumpus(worldList.get(i).x, worldList.get(i).y))
         {
@@ -134,7 +130,7 @@ public class Rules
                         worldList.get(i).contains[danger] = true;
                     }
             }
-            if(worldList.get(i).x == x+1 && worldList.get(i).y == y )
+            if(worldList.get(i).x == x-1 && worldList.get(i).y == y )
             {
                 if(worldList.get(i).safe == false)
                     if(w.isVisited(worldList.get(i).x, worldList.get(i).y) == false)
@@ -144,7 +140,7 @@ public class Rules
 
                     }
             }
-            if(worldList.get(i).x == x+1 && worldList.get(i).y == y )
+            if(worldList.get(i).x == x && worldList.get(i).y == y+1 )
             {
                 if(worldList.get(i).safe == false)
                     if(w.isVisited(worldList.get(i).x, worldList.get(i).y) == false)
@@ -154,7 +150,7 @@ public class Rules
 
                     }
             }
-            if(worldList.get(i).x == x+1 && worldList.get(i).y == y )
+            if(worldList.get(i).x == x && worldList.get(i).y == y-1 )
             {
                 if(worldList.get(i).safe == false)
                     if(w.isVisited(worldList.get(i).x, worldList.get(i).y) == false)
@@ -243,7 +239,8 @@ public class Rules
                                     worldList.get(k).used[j] = true;
                                 }
                             }
-                            worldList.get(i).trueDanger[j] = true; 
+                            worldList.get(i).trueDanger[j] = true;
+                            break;
                         }
                     }
                      if(w.isVisited(x-1, y+1))
@@ -287,7 +284,8 @@ public class Rules
                                     worldList.get(k).used[j] = true;
                                 }
                             }
-                            worldList.get(i).trueDanger[j] = true; 
+                            worldList.get(i).trueDanger[j] = true;
+                            break;
                         }
                     }   
                     if(w.isVisited(x-1, y-1))
@@ -331,7 +329,8 @@ public class Rules
                                     worldList.get(k).used[j] = true;
                                 }
                             }
-                            worldList.get(i).trueDanger[j] = true; 
+                            worldList.get(i).trueDanger[j] = true;
+                            break;
                         }
                     }
                     if(w.isVisited(x+1, y-1))
@@ -375,7 +374,8 @@ public class Rules
                                     worldList.get(k).used[j] = true;
                                 }
                             }
-                            worldList.get(i).trueDanger[j] = true; 
+                            worldList.get(i).trueDanger[j] = true;
+                            break;
                         }
                     }
                 }
@@ -401,6 +401,8 @@ public class Rules
                             if(worldList.get(k).trueDanger[j] == true)
                             {
                                 worldList.get(i).contains[j] = false;
+                                if(worldList.get(i).contains[0] == false)
+                                    worldList.get(i).safe = true;
                             }
                         }
                         if(worldList.get(k).x == x+1 && worldList.get(k).y == y-1)
@@ -408,6 +410,8 @@ public class Rules
                             if(worldList.get(k).trueDanger[j] == true)
                             {
                                 worldList.get(i).contains[j] = false;
+                                if(worldList.get(i).contains[0] == false)
+                                    worldList.get(i).safe = true;
                             }
                         }
                         if(worldList.get(k).x == x-1 && worldList.get(k).y == y+1)
@@ -415,6 +419,8 @@ public class Rules
                             if(worldList.get(k).trueDanger[j] == true)
                             {
                                 worldList.get(i).contains[j] = false;
+                                if(worldList.get(i).contains[0] == false)
+                                    worldList.get(i).safe = true;
                             }
                         }
                         if(worldList.get(k).x == x-1 && worldList.get(k).y == y-1)
@@ -422,16 +428,27 @@ public class Rules
                             if(worldList.get(k).trueDanger[j] == true)
                             {
                                 worldList.get(i).contains[j] = false;
+                                if(worldList.get(i).contains[0] == false)
+                                    worldList.get(i).safe = true;
                             }
                         }
                         
+                    }
+                    
+                    if(w.isVisited(x, y) == true && w.hasPit(x, y) == false)
+                    {
+                        worldList.get(i).contains[1] = false;
+                    }
+                    if(w.isVisited(x, y) == true && w.hasWumpus(x, y) == false)
+                    {
+                        worldList.get(i).contains[0] = false;
                     }
                 }
             }
         }
     }
     
-    private void setGoal()
+    private void setGoal(boolean arbitary)
     {
         List<worldInfo> safeList = new ArrayList<worldInfo>();
         boolean trueWumpus = false;
@@ -445,8 +462,19 @@ public class Rules
         
         if(safeList.size() > 0)
         {
-            goal[0] = safeList.get(0).x;
-            goal[1] = safeList.get(0).y;
+            int safe[] = new int[2];
+            safe[0] = 100;
+            safe[1] = 0;
+            for(int i  = 0; i < safeList.size();i++)
+            {
+                if(Math.abs(safeList.get(i).x - w.getPlayerX()) + Math.abs(safeList.get(i).y - w.getPlayerY()) < safe[0])
+                {
+                    safe[0] = Math.abs(safeList.get(i).x - w.getPlayerX()) + Math.abs(safeList.get(i).y - w.getPlayerY());
+                    safe[1] = i;
+                }
+            }
+            goal[0] = safeList.get(safe[1]).x;
+            goal[1] = safeList.get(safe[1]).y;
         }
         else if(w.wumpusAlive() == true)
         {
@@ -461,18 +489,47 @@ public class Rules
             }
         }
         
-        if(safeList.size() == 0 && trueWumpus == false)
+        int delta[] = new int[2];
+        delta[0] = 100;
+        delta[1] = -1;
+        
+        if(safeList.size() == 0 && trueWumpus == false || arbitary == true)
         {
             for(int i = 0; i < worldList.size();i++)
             {
-                if(w.isVisited(worldList.get(i).x, worldList.get(i).y) == false && worldList.get(i).trueDanger[0] == false && worldList.get(i).trueDanger[1] == false )
+                if(w.isVisited(worldList.get(i).x, worldList.get(i).y) == false && worldList.get(i).trueDanger[0] == false && worldList.get(i).trueDanger[1] == false && worldList.get(i).contains[0] == false)
                 {
-                    goal[0] = worldList.get(i).x;
-                    goal[1] = worldList.get(i).y;
-                    break;
+                    int testD = Math.abs(worldList.get(i).x - w.getPlayerX()) + Math.abs(worldList.get(i).y - w.getPlayerY());
+                    if( testD < delta[0])
+                    {
+                        if(possibleMove(worldList.get(i).x,worldList.get(i).y) == true)
+                        {
+                            delta[0] = (worldList.get(i).x - w.getPlayerX()) + Math.abs(worldList.get(i).y - w.getPlayerY());
+                            delta[1] = i;
+                        }
+                    }
                 }   
             }
+            
+            if(delta[1] == -1)
+            {
+                for(int i = 0; i < worldList.size();i++)
+                {
+                    if(w.isVisited(worldList.get(i).x, worldList.get(i).y) == false)
+                    {
+                        int testD = Math.abs(worldList.get(i).x - w.getPlayerX()) + Math.abs(worldList.get(i).y - w.getPlayerY());
+                        if( testD < delta[0])
+                        {
+                            delta[0] = (worldList.get(i).x - w.getPlayerX()) + Math.abs(worldList.get(i).y - w.getPlayerY());
+                            delta[1] = i;
+                        }
+                    } 
+                }
+            }
+            goal[0] = worldList.get(delta[1]).x;
+            goal[1] = worldList.get(delta[1]).y;
         }
+
         System.out.println("Goal = " + goal[0] + " " + goal[1]);
     }
     
@@ -511,6 +568,7 @@ public class Rules
         else
         {
             List<worldInfo> pathList = new ArrayList<worldInfo>();
+            List<worldInfo> visitList = new ArrayList<worldInfo>();
             pathList.add(worldList.get(pi));
 
             
@@ -521,8 +579,8 @@ public class Rules
                 int bestChoise[] = new int[2];
                 bestChoise[0] = 100;
                 bestChoise[1] = 100;   
-                dx = goal[0] - px;
-                dy = goal[1] - py;
+                dx = goal[0] - tx;
+                dy = goal[1] - ty;
                 
                 if(Math.abs(dx) + Math.abs(dy) == 1)
                 {
@@ -564,7 +622,7 @@ public class Rules
 
                     if(bestChoise[1] == 100)
                     {
-                        pathList.add(pathList.get(pathList.size()-2));
+                        pathList.remove(pathList.get(pathList.size()-1));
                     }
                     else
                     {
@@ -575,6 +633,26 @@ public class Rules
                 if(pathList.get(pathList.size()-1).x == goal[0] && pathList.get(pathList.size()-1).y == goal[1])
                 {
                     break;
+                }
+                
+                if(pathList.size() > 1000)
+                {
+                    boolean trueWumpus = false;
+                    for(int i = 0; i < worldList.size();i++)
+                    {
+                        if(worldList.get(i).trueDanger[1] == true)
+                        {
+                            trueWumpus = true;
+                        }
+                    }
+                    if(trueWumpus == true && w.hasArrow() == true)
+                    {
+                        killWumpus();
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
             }
             
@@ -905,6 +983,144 @@ public class Rules
         
     }
     
+    private void setPit(int px,int py)
+    {
+        for(int i = 0; i < worldList.size();i++)
+        {
+            if(worldList.get(i).x == px && worldList.get(i).y == py)
+            {
+                worldList.get(i).contains[1] = true;
+                worldList.get(i).trueDanger[1] = true;
+                worldList.get(i).safe = false;
+
+            }
+            if(worldList.get(i).x == px+1 && worldList.get(i).y == py)
+            {
+                worldList.get(i).contains[3] = true;
+                worldList.get(i).used[1] = true;
+            }
+            if(worldList.get(i).x == px && worldList.get(i).y == py+1)
+            {
+                worldList.get(i).contains[3] = true;
+                worldList.get(i).used[1] = true;
+            }
+            if(worldList.get(i).x == px-1 && worldList.get(i).y == py)
+            {
+                worldList.get(i).contains[3] = true;
+                worldList.get(i).used[1] = true;
+            }
+            if(worldList.get(i).x == px && worldList.get(i).y == py-1)
+            {
+                worldList.get(i).contains[3] = true;
+                worldList.get(i).used[1] = true;
+            }   
+        }
+    }
     
+    private boolean possibleMove(int x, int y)
+    {
+        int px = w.getPlayerX();
+        int py = w.getPlayerY();
+        
+        int dx = x - px;
+        int dy = y - py;
+        
+        int pi = 0;
+        for(int i = 0; i < worldList.size();i++)
+        {
+            if(worldList.get(i).x == px && worldList.get(i).y == py)
+            {
+                pi = i;
+            }
+        }
+        
+        if(Math.abs(dx) + Math.abs(dy) == 1)
+        {
+            if(shouldTurn(x,y))
+            {
+                doTurn(x,y);
+            }
+            else
+            {
+                w.doAction(World.A_MOVE);
+            }
+        }
+        else
+        {
+            List<worldInfo> pathList = new ArrayList<worldInfo>();
+            pathList.add(worldList.get(pi));
+
+            
+            while(true)
+            {
+                int tx = pathList.get(pathList.size()-1).x;
+                int ty = pathList.get(pathList.size()-1).y;
+                int bestChoise[] = new int[2];
+                bestChoise[0] = 100;
+                bestChoise[1] = 100;   
+                dx = x - tx;
+                dy = y - ty;
+                
+                if(Math.abs(dx) + Math.abs(dy) == 1)
+                {
+                    for(int i = 0; i < worldList.size();i++)
+                    {
+                        if(worldList.get(i).x == x && worldList.get(i).y == y)
+                        {
+                            pathList.add(worldList.get(i));
+                        }
+                    }
+                }
+                else
+                {
+                    for(int i = 0; i < worldList.size();i++)
+                    {
+                        if(Math.abs(worldList.get(i).x - tx) + Math.abs(worldList.get(i).y - ty) == 1)
+                        {
+                            if( worldList.get(i).safe == true)
+                            {
+                                if(Math.abs(worldList.get(i).x - x) + Math.abs(worldList.get(i).y - y) < bestChoise[0] )
+                                {
+                                    boolean beenThere = false;
+                                    for(int j = 0; j < pathList.size();j++)
+                                    {
+                                        if(pathList.get(j) == worldList.get(i))
+                                        {
+                                            beenThere = true;
+                                        } 
+                                    }
+                                    if(beenThere == false)
+                                    {
+                                        bestChoise[0] = worldList.get(i).x - x + worldList.get(i).y - y;
+                                        bestChoise[1] = i;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if(bestChoise[1] == 100)
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        pathList.add(worldList.get(bestChoise[1]));
+                    }
+                }
+                
+                if(pathList.get(pathList.size()-1).x == x && pathList.get(pathList.size()-1).y == y)
+                {
+                    break;
+                }
+                
+                if(pathList.size() > 1000)
+                {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
     
 }
