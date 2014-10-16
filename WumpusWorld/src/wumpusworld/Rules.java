@@ -15,7 +15,8 @@ public class Rules
 {
     private World w;
     public List<worldInfo> worldList = new ArrayList<worldInfo>();
-    
+    private List<worldInfo> triedList = new ArrayList<worldInfo>();
+
     private int goal[] = new int[2];
     
     public class worldInfo
@@ -467,10 +468,13 @@ public class Rules
             safe[1] = 0;
             for(int i  = 0; i < safeList.size();i++)
             {
-                if(Math.abs(safeList.get(i).x - w.getPlayerX()) + Math.abs(safeList.get(i).y - w.getPlayerY()) < safe[0])
+                if(inTriadList(safeList.get(i)) == false)
                 {
-                    safe[0] = Math.abs(safeList.get(i).x - w.getPlayerX()) + Math.abs(safeList.get(i).y - w.getPlayerY());
-                    safe[1] = i;
+                    if(Math.abs(safeList.get(i).x - w.getPlayerX()) + Math.abs(safeList.get(i).y - w.getPlayerY()) < safe[0])
+                    {
+                        safe[0] = Math.abs(safeList.get(i).x - w.getPlayerX()) + Math.abs(safeList.get(i).y - w.getPlayerY());
+                        safe[1] = i;
+                    }
                 }
             }
             goal[0] = safeList.get(safe[1]).x;
@@ -499,13 +503,16 @@ public class Rules
             {
                 if(w.isVisited(worldList.get(i).x, worldList.get(i).y) == false && worldList.get(i).trueDanger[0] == false && worldList.get(i).trueDanger[1] == false && worldList.get(i).contains[0] == false)
                 {
-                    int testD = Math.abs(worldList.get(i).x - w.getPlayerX()) + Math.abs(worldList.get(i).y - w.getPlayerY());
-                    if( testD < delta[0])
+                    if(inTriadList(worldList.get(i)) == false)
                     {
-                        if(possibleMove(worldList.get(i).x,worldList.get(i).y) == true)
+                        int testD = Math.abs(worldList.get(i).x - w.getPlayerX()) + Math.abs(worldList.get(i).y - w.getPlayerY());
+                        if( testD < delta[0])
                         {
-                            delta[0] = (worldList.get(i).x - w.getPlayerX()) + Math.abs(worldList.get(i).y - w.getPlayerY());
-                            delta[1] = i;
+                            if(possibleMove(worldList.get(i).x,worldList.get(i).y) == true)
+                            {
+                                delta[0] = (worldList.get(i).x - w.getPlayerX()) + Math.abs(worldList.get(i).y - w.getPlayerY());
+                                delta[1] = i;
+                            }
                         }
                     }
                 }   
@@ -517,11 +524,14 @@ public class Rules
                 {
                     if(w.isVisited(worldList.get(i).x, worldList.get(i).y) == false)
                     {
-                        int testD = Math.abs(worldList.get(i).x - w.getPlayerX()) + Math.abs(worldList.get(i).y - w.getPlayerY());
-                        if( testD < delta[0])
+                        if(inTriadList(worldList.get(i)) == false)
                         {
-                            delta[0] = (worldList.get(i).x - w.getPlayerX()) + Math.abs(worldList.get(i).y - w.getPlayerY());
-                            delta[1] = i;
+                            int testD = Math.abs(worldList.get(i).x - w.getPlayerX()) + Math.abs(worldList.get(i).y - w.getPlayerY());
+                            if( testD < delta[0])
+                            {
+                                delta[0] = (worldList.get(i).x - w.getPlayerX()) + Math.abs(worldList.get(i).y - w.getPlayerY());
+                                delta[1] = i;
+                            }
                         }
                     } 
                 }
@@ -533,6 +543,7 @@ public class Rules
         System.out.println("Goal = " + goal[0] + " " + goal[1]);
     }
     
+    
     private void pathToGoal()
     {
         int px = w.getPlayerX();
@@ -540,6 +551,8 @@ public class Rules
         
         int dx = goal[0] - px;
         int dy = goal[1] - py;
+        
+        triedList.clear();
         
         int pi = 0;
         for(int i = 0; i < worldList.size();i++)
@@ -570,7 +583,7 @@ public class Rules
             List<worldInfo> pathList = new ArrayList<worldInfo>();
             List<worldInfo> visitList = new ArrayList<worldInfo>();
             pathList.add(worldList.get(pi));
-
+            visitList.add(worldList.get(pi));
             
             while(true)
             {
@@ -589,6 +602,7 @@ public class Rules
                         if(worldList.get(i).x == goal[0] && worldList.get(i).y == goal[1])
                         {
                             pathList.add(worldList.get(i));
+                            visitList.add(worldList.get(i));
                         }
                     }
                 }
@@ -627,15 +641,19 @@ public class Rules
                     else
                     {
                         pathList.add(worldList.get(bestChoise[1]));
+                        visitList.add(worldList.get(bestChoise[1]));
                     }
                 }
                 
-                if(pathList.get(pathList.size()-1).x == goal[0] && pathList.get(pathList.size()-1).y == goal[1])
+                if(pathList.size() > 0)
                 {
-                    break;
+                    if(pathList.get(pathList.size()-1).x == goal[0] && pathList.get(pathList.size()-1).y == goal[1])
+                    {
+                        break;
+                    }
                 }
                 
-                if(pathList.size() > 1000)
+                if(visitList.size() > 1000)
                 {
                     boolean trueWumpus = false;
                     for(int i = 0; i < worldList.size();i++)
@@ -651,7 +669,18 @@ public class Rules
                     }
                     else
                     {
-                        break;
+                        for(int i = 0; i < worldList.size();i++)
+                        {
+                            if(worldList.get(i).x == goal[0] && worldList.get(i).y == goal[1])
+                            {
+                                triedList.add(worldList.get(i));
+                            }
+                        }
+                        setGoal(true);
+                        pathList.clear();
+                        visitList.clear();
+                        pathList.add(worldList.get(pi));
+                        visitList.add(worldList.get(pi));
                     }
                 }
             }
@@ -668,6 +697,9 @@ public class Rules
                 }
             }
         }
+        
+        triedList.clear();
+        
     }
     
     private boolean shouldTurn(int x, int y)
@@ -1121,6 +1153,18 @@ public class Rules
             }
         }
         return true;
+    }
+    
+    private boolean inTriadList(worldInfo test)
+    {
+        for(int i = 0; i < triedList.size();i++)
+        {
+            if(triedList.get(i) == test)
+            {
+                return true;
+            }
+        }
+        return false;
     }
     
 }

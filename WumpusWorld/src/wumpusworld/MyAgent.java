@@ -45,7 +45,11 @@ public class MyAgent implements Agent
             w.doAction(World.A_CLIMB);
             return;
         }
-        
-        r.updateWorld();
+        if(w.gameOver() == false)
+            r.updateWorld();
+        else
+        {
+            System.out.println("Gold was found!!!");
+        }
     }
 }
