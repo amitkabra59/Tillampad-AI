@@ -536,6 +536,22 @@ public class Rules
                     } 
                 }
             }
+            
+            if(delta[1] == -1)
+            {
+                for(int i = 0; i < worldList.size();i++)
+                {
+                    if(w.isVisited(worldList.get(i).x, worldList.get(i).y) == false)
+                    {
+                        int testD = Math.abs(worldList.get(i).x - w.getPlayerX()) + Math.abs(worldList.get(i).y - w.getPlayerY());
+                        if( testD < delta[0])
+                        {
+                            delta[0] = (worldList.get(i).x - w.getPlayerX()) + Math.abs(worldList.get(i).y - w.getPlayerY());
+                            delta[1] = i;
+                        }
+                    } 
+                }
+            }
             goal[0] = worldList.get(delta[1]).x;
             goal[1] = worldList.get(delta[1]).y;
         }
@@ -582,11 +598,17 @@ public class Rules
         {
             List<worldInfo> pathList = new ArrayList<worldInfo>();
             List<worldInfo> visitList = new ArrayList<worldInfo>();
-            pathList.add(worldList.get(pi));
-            visitList.add(worldList.get(pi));
+
             
             while(true)
             {
+                if(pathList.size() == 0)
+                {
+                    pathList.add(worldList.get(pi));
+                }
+                visitList.add(worldList.get(pi));
+
+                
                 int tx = pathList.get(pathList.size()-1).x;
                 int ty = pathList.get(pathList.size()-1).y;
                 int bestChoise[] = new int[2];
@@ -658,7 +680,7 @@ public class Rules
                     boolean trueWumpus = false;
                     for(int i = 0; i < worldList.size();i++)
                     {
-                        if(worldList.get(i).trueDanger[1] == true)
+                        if(worldList.get(i).trueDanger[0] == true)
                         {
                             trueWumpus = true;
                         }
@@ -681,6 +703,10 @@ public class Rules
                         visitList.clear();
                         pathList.add(worldList.get(pi));
                         visitList.add(worldList.get(pi));
+                        if(triedList.size() > 1000)
+                        {
+                            moveRandomDir();
+                        }
                     }
                 }
             }
@@ -1165,6 +1191,34 @@ public class Rules
             }
         }
         return false;
+    }
+    
+    private void moveRandomDir()
+    {
+        Random rand = new Random();
+        
+        int randInt = rand.nextInt(4);
+        
+        if(randInt == 0)
+        {
+            goal[0] = w.getPlayerX() + 1;
+            goal[1] = w.getPlayerY();
+        }
+        else if(randInt == 1)
+        {
+            goal[0] = w.getPlayerX() - 1;
+            goal[1] = w.getPlayerY();
+        }
+        else if(randInt == 2)
+        {
+            goal[0] = w.getPlayerX();
+            goal[1] = w.getPlayerY() + 1;
+        }
+        else if(randInt == 3)
+        {
+            goal[0] = w.getPlayerX();
+            goal[1] = w.getPlayerY() - 1;
+        }
     }
     
 }
